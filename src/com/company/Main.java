@@ -1,73 +1,81 @@
-﻿package com.company;
+package com.company;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
+
+
+/**1234**/
 
 public class Main {
 
 
-
+    //выходная строка
     static ArrayList<String> outStr = new ArrayList<String>();
-    
+    //список цифр
     static List<String> nums = Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ".");
-    
+    //список операторов и скобок
     static List<String> operands = Arrays.asList("+","-","/","*","(",")");
 
     public static void main(String[] args) throws Exception {
-        // write your code here
+
 
         try{
             System.out.print("Введите арифметическое выражение:\n");
 
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             String inStr = reader.readLine();
 
-            Stack oper = new Stack();
+            Stack stackVal = new Stack();
 
 
-            int k = inStr.length();
+            int lengthMathExpression = inStr.length();//длина введенного выражения
             int i = 0;
-            Object s;
-            String out = "";
+            Object character;
+            String upElement = "";
 
-            while (i < k)
+
+            while (i < lengthMathExpression)
             {
                 if (nums.contains(String.valueOf(inStr.charAt(i)))) {
 
-                    String num = "";
+                    String digitsOrPoint = "";
 
-                    while (i < k && nums.contains(String.valueOf(inStr.charAt(i)))) { 
-                        num += String.valueOf(inStr.charAt(i++));
+                    while (i < lengthMathExpression && nums.contains(String.valueOf(inStr.charAt(i)))) { 
+                        digitsOrPoint += String.valueOf(inStr.charAt(i++));
                     }
 
-                    outStr.add(num); 
+                    outStr.add(digitsOrPoint); 
                     continue; 
                 }
 
                 if (String.valueOf(inStr.charAt(i)).equals("(")) {
-                    oper.push(String.valueOf(inStr.charAt(i)));
+                    stackVal.push(String.valueOf(inStr.charAt(i)));
                 }
                 String st = String.valueOf(inStr.charAt(i));
                 if (st.equals("+") || st.equals("-") || st.equals("*") || st.equals("/")) {
 
-                    while ((!oper.empty()) && (priority(String.valueOf(inStr.charAt(i))) <= (priority((String) oper.peek())))) {
-                        out = (String) oper.pop();
-                        outStr.add(out);
+                    while ((!stackVal.empty()) && (priority(String.valueOf(inStr.charAt(i))) <= (priority((String) stackVal.peek())))) {
+                        upElement = (String) stackVal.pop();
+                        outStr.add(upElement);
                     }
-                    oper.push(String.valueOf(inStr.charAt(i)));
+                    stackVal.push(String.valueOf(inStr.charAt(i)));
                 }
 
                 if (String.valueOf(inStr.charAt(i)).equals(")")) {
-                    int l = oper.search("(");
-                    while (l > 0) {
-                        s = oper.pop();
-                        outStr.add(s.toString());
-                        l--;
+                    int stepsToOpenParenthesis = stackVal.search("(");
+                    while (stepsToOpenParenthesis > 0) {
+                        character = stackVal.pop();
+                        outStr.add(character.toString());
+                        stepsToOpenParenthesis--;
                     }
-                    //убираем последний элемент
+                    
                     int size = outStr.size() - 1;
                     outStr.remove(size);
                 }
@@ -75,55 +83,57 @@ public class Main {
                 i++;
             }
 
-            while (!oper.empty()) {
-                s = oper.pop();
-                outStr.add(s.toString());
+            while (!stackVal.empty()) {
+                character = stackVal.pop();
+                outStr.add(character.toString());
             }
 
 
-            double res = 0;
-            double g = 0;
-            double j = 0;
-            int h = outStr.size();
-            i = 0;
 
-            while (i < h) {
+            double res = 0;
+            double a = 0;
+            double b = 0;
+            int sizeOutStr = outStr.size();
+            i = 0;
+            
+
+            while (i < sizeOutStr) {
                 if (operands.contains(outStr.get(i))) 
                 {
-                    g = Double.parseDouble(oper.pop().toString()); 
-                    j = Double.parseDouble(oper.pop().toString()); 
+                    a = Double.parseDouble(stackVal.pop().toString());
+                    b = Double.parseDouble(stackVal.pop().toString()); 
 
 
                     switch (outStr.get(i).toString())   
                     {                                   
                         case "+":
-                            res = j + g;         
+                            res = b + a;         
                             break;
                         case "-":
-                            res = j - g;
+                            res = b - a;
                             break;
                         case "*":
-                            res = j * g;
+                            res = b * a;
                             break;
                         case "/":
-                            res = j / g;
+                            res = b / a;
                             break;
                     }
 
-                    oper.push(res);
+                    stackVal.push(res);
                 } else { 
-                    oper.push(Double.parseDouble(outStr.get(i))); 
+                    stackVal.push(Double.parseDouble(outStr.get(i))); 
                 }
                 i++;
             }
-            res = Double.parseDouble(oper.pop().toString());
+            res = Double.parseDouble(stackVal.pop().toString());
             double newRes = new BigDecimal(res).setScale(4, RoundingMode.UP).doubleValue();
-           //System.out.println(outStr);
-           //System.out.println(oper);
+            System.out.println(outStr);
+            System.out.println(stackVal);
             System.out.print(newRes);
         }catch (Exception e){
 
-         System.out.print("Выражение невозможно вычислить");
+            System.out.print("Выражение невозможно вычислить");
         }
 
 
@@ -133,14 +143,14 @@ public class Main {
     public static int priority(String op)
     {
 
-            if ((op.equals("*")) || (op.equals("/"))) {
-                return 3;
-            } else if ((op.equals("+")) || (op.equals("-"))) {
-                return 2;
-            } else if (op.equals("(")) {
-                return 1;
-            } else
-                return -1;
+        if ((op.equals("*")) || (op.equals("/"))) {
+            return 3;
+        } else if ((op.equals("+")) || (op.equals("-"))) {
+            return 2;
+        } else if (op.equals("(")) {
+            return 1;
+        } else
+            return -1;
 
     }
 }
